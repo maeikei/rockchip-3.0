@@ -44,9 +44,8 @@ static ssize_t show_screen_info(struct device *dev,
 	rk_screen * screen = dev_drv->screen0;
 	int fps;
 	u64 ft = (u64)(screen->upper_margin + screen->lower_margin + screen->y_res +screen->vsync_len)*
-		(screen->left_margin + screen->right_margin + screen->x_res + screen->hsync_len)*
-		(dev_drv->pixclock);       // one frame time ,(pico seconds)
-	fps = div64_u64(1000000000000llu,ft);
+		(screen->left_margin + screen->right_margin + screen->x_res + screen->hsync_len);       // one frame time ,(pico seconds)
+	fps = div64_u64(screen->pixclock,ft);
 	return snprintf(buf, PAGE_SIZE,"xres:%d\nyres:%d\nfps:%d\n",
 		screen->x_res,screen->y_res,fps);
 }
@@ -364,7 +363,7 @@ static ssize_t set_scale(struct device *dev,struct device_attribute *attr,
 		}
 	}
 //	printk("scale rate x %d y %d\n", dev_drv->x_scale, dev_drv->y_scale);
-	
+#if 0	
 	var = &fbi->var;
 	xpos = (dev_drv->cur_screen->x_res - dev_drv->cur_screen->x_res*dev_drv->x_scale/100)>>1;
 	ypos = (dev_drv->cur_screen->y_res - dev_drv->cur_screen->y_res*dev_drv->y_scale/100)>>1;
@@ -378,6 +377,7 @@ static ssize_t set_scale(struct device *dev,struct device_attribute *attr,
 	var->grayscale |= (xsize << 8) + (ysize << 20);
 
 	fbi->fbops->fb_set_par(fbi);
+#endif
 	return count;
 }
 

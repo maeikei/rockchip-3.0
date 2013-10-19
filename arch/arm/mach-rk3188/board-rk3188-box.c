@@ -50,13 +50,15 @@
 #if defined(CONFIG_CT36X_TS)
 #include <linux/ct36x.h>
 #endif
+#include <plat/efuse.h>
+
 #if defined(CONFIG_MFD_RK610)
 #include <linux/mfd/rk610_core.h>
 #endif
-//$_rbox_$_modify_$ zhengyang modified for box
+
 #include <linux/display-sys.h>
 #include <linux/rk_fb.h>
-//$_rbox_$_modify_$ zhengyang modified end
+
 #if defined(CONFIG_SPIM_RK29)
 #include "../../../drivers/spi/rk29_spim.h"
 #endif
@@ -67,11 +69,10 @@
 #include "../../../drivers/misc/gps/rk_gps/rk_gps.h"
 #endif
 
-/*$_rbox_$_modify_$_huangzhibao begin*/
 #ifdef CONFIG_RK_REMOTECTL
 #include <mach/remotectl.h>
 #endif
-/*$_rbox_$_modify_$_huangzhibao endif*/
+
 #if defined(CONFIG_MT6620)
 #include <linux/gps.h>
 #endif
@@ -636,7 +637,7 @@ static struct rk_hdmi_platform_data rk_hdmi_pdata = {
 };
 #endif
 #ifdef CONFIG_ION
-#define ION_RESERVE_SIZE        (80 * SZ_1M)
+#define ION_RESERVE_SIZE        (120 * SZ_1M)
 static struct ion_platform_data rk30_ion_pdata = {
 	.nr = 1,
 	.heaps = {
@@ -903,7 +904,7 @@ static struct platform_device rk30_device_adc_battery = {
         },
 };
 #endif
-/*$_rbox_$_modify_$_huangzhibao_begin$_20120508_$*/
+
 #ifdef CONFIG_RK_REMOTECTL
 
 void rk30_remotectl_iomux(void)
@@ -926,7 +927,7 @@ static struct platform_device rk30_device_remotectl = {
 	},
 };
 #endif
-/*$_rbox_$_modify_$_huangzhibao_end$_20120508_$*/
+
 #ifdef CONFIG_RK30_PWM_REGULATOR
 static int pwm_voltage_map[] = {
 	800000,825000,850000, 875000,900000, 925000 ,950000, 975000,1000000, 1025000, 1050000, 1075000, 1100000, 1125000, 1150000, 1175000, 1200000, 1225000, 1250000, 1275000, 1300000, 1325000, 1350000,1375000
@@ -986,23 +987,35 @@ static struct rfkill_rk_platform_data rfkill_rk_platdata = {
     .type               = RFKILL_TYPE_BLUETOOTH,
 
     .poweron_gpio       = { // BT_REG_ON
-        .io             = RK30_PIN3_PD1, //RK30_PIN3_PC7,
+        .io             = RK30_PIN3_PC7, //RK30_PIN3_PC7,
         .enable         = GPIO_HIGH,
+        .iomux          = {
+            .name       = "bt_poweron",
+            .fgpio      = GPIO3_C7,
+        },
     },
 
     .reset_gpio         = { // BT_RST
-        .io             = INVALID_GPIO, // set io to INVALID_GPIO for disable it
+        .io             = RK30_PIN3_PD1, // set io to INVALID_GPIO for disable it
         .enable         = GPIO_LOW,
-   }, 
+        .iomux          = {
+            .name       = "bt_reset",
+            .fgpio      = GPIO3_D1,
+       },
+    },
 
     .wake_gpio          = { // BT_WAKE, use to control bt's sleep and wakeup
         .io             = RK30_PIN3_PC6, // set io to INVALID_GPIO for disable it
         .enable         = GPIO_HIGH,
+        .iomux          = {
+            .name       = "bt_wake",
+            .fgpio      = GPIO3_C6,
+        },
     },
 
     .wake_host_irq      = { // BT_HOST_WAKE, for bt wakeup host when it is in deep sleep
         .gpio           = {
-            .io         = RK30_PIN0_PA5, // set io to INVALID_GPIO for disable it
+            .io         = RK30_PIN3_PD2, // set io to INVALID_GPIO for disable it
             .enable     = GPIO_LOW,      // set GPIO_LOW for falling, set 0 for rising
             .iomux      = {
                 .name   = NULL,
@@ -1152,7 +1165,6 @@ static struct platform_device device_mt6622 = {
 };	
 #endif
 
-/*$_rbox_$_modify_$_zhengyang_begin$_20130407_$*/
 /*
  * Codec for the ASoC Rockchip HDMI machine driver
  */
@@ -1171,7 +1183,64 @@ static struct platform_device rockchip_hdmi_audio = {
 	.id	= -1,
 };
 #endif
-/*$_rbox_$_modify_$_zhengyang_end$_20130407_$*/
+
+#ifdef CONFIG_LEDS_GPIO_PLATFORM
+static struct gpio_led rk3188_leds[] = {	
+#ifdef CONFIG_DISPLAY_KEY_LED_CONTROL
+	#ifdef CONFIG_RK_HDMI
+	{
+		#ifdef CONFIG_IT66121
+		.name = "it66121",
+		#endif
+		.gpio = RK30_PIN0_PC6,
+		.active_low = 0,
+		.retain_state_suspended = 0,
+		.default_state = LEDS_GPIO_DEFSTATE_OFF,
+	},
+	#endif
+	#ifdef CONFIG_RK_VGA
+	{
+		.name = "vga",
+		.gpio = RK30_PIN0_PC5,
+		.active_low = 0,
+		.retain_state_suspended = 0,
+		.default_state = LEDS_GPIO_DEFSTATE_OFF,
+	},
+	#endif
+	#if defined(CONFIG_CH7025_7026_TVOUT_YPBPR) || defined(CONFIG_RK610_TVOUT_YPbPr) || defined(CONFIG_RK1000_TVOUT_YPbPr)
+	{
+		.name = "ypbpr",
+		.gpio = RK30_PIN0_PC4,
+		.active_low = 0,
+		.retain_state_suspended = 0,
+		.default_state = LEDS_GPIO_DEFSTATE_OFF,
+	},
+	#endif
+	#if defined(CONFIG_CH7025_7026_TVOUT_CVBS) || defined(CONFIG_RK610_TVOUT_CVBS) || defined(CONFIG_RK1000_TVOUT_CVBS)
+	{
+		.name = "cvbs",
+		.gpio = RK30_PIN0_PC3,
+		.active_low = 0,
+		.retain_state_suspended = 0,
+		.default_state = LEDS_GPIO_DEFSTATE_OFF,
+	},
+	#endif
+#endif
+};
+
+static struct gpio_led_platform_data rk3188_leds_pdata = {
+	.leds = rk3188_leds,
+	.num_leds = ARRAY_SIZE(rk3188_leds),
+};
+
+static struct platform_device rk3188_device_gpio_leds = {
+	.name	= "leds-gpio",
+	.id	= -1,
+	.dev	= {
+		.platform_data  = &rk3188_leds_pdata,
+	},
+};
+#endif
 
 static struct platform_device *devices[] __initdata = {
 
@@ -1198,24 +1267,25 @@ static struct platform_device *devices[] __initdata = {
 #ifdef CONFIG_MT5931_MT6622
 	&device_mt6622,
 #endif
-/*$_rbox_$_modify_$_huangzhibao_begin$_20120508_$*/
+
 #ifdef CONFIG_RK_REMOTECTL	
     &rk30_device_remotectl,
 #endif
-/*$_rbox_$_modify_$_huangzhibao_end$_20120508_$*/
+
 #if defined(CONFIG_MT6229)
 	&rk29_device_mt6229,
 #endif
-/*$_rbox_$_modify_$_zhengyang_begin$_20130407_$*/
+
 #ifdef CONFIG_SND_SOC_RK_HDMI_CODEC
 	&rockchip_hdmi_codec,
 #endif
 #ifdef CONFIG_SND_RK_SOC_HDMI
 	&rockchip_hdmi_audio,
 #endif
-/*$_rbox_$_modify_$_zhengyang_end$_20130407_$*/
+#ifdef CONFIG_LEDS_GPIO_PLATFORM
+	&rk3188_device_gpio_leds,
+#endif
 };
-
 
 static int rk_platform_add_display_devices(void)
 {
@@ -1241,9 +1311,8 @@ static int rk_platform_add_display_devices(void)
 	__rk_platform_add_display_devices(fb,lcdc0,lcdc1,bl);
 
 	return 0;
-	
 }
-//$_rbox_$_modify_$ zhengyang modified for box
+
 static struct rkdisplay_platform_data hdmi_data = {
 	.property 		= DISPLAY_MAIN,
 	.video_source 	= DISPLAY_SOURCE_LCDC1,
@@ -1251,16 +1320,16 @@ static struct rkdisplay_platform_data hdmi_data = {
 	.io_reset_pin 	= RK30_PIN3_PB2,
 };
 
-#if defined(CONFIG_RK1000_TVOUT)
+#if defined(CONFIG_RK1000_TVOUT) || defined(CONFIG_MFD_RK1000)
 static struct rkdisplay_platform_data tv_data = {
-	.property 		= DISPLAY_AUX,
+	.property 		= DISPLAY_MAIN,//DISPLAY_AUX,
 	.video_source 	= DISPLAY_SOURCE_LCDC0,
 	.io_pwr_pin 	= INVALID_GPIO,
 	.io_reset_pin 	= RK30_PIN3_PD4,
-	.io_switch_pin	= INVALID_GPIO,
+	.io_switch_pin	= RK30_PIN2_PD7,
 };
 #endif
-//$_rbox_$_modify_$ zhengyang modified end
+
 
 // i2c
 #ifdef CONFIG_I2C0_RK30
@@ -1330,7 +1399,7 @@ static struct i2c_board_info __initdata i2c0_info[] = {
 		.platform_data = &l3g4200d_info,
 	},
 #endif
-//$_rbox_$_modify_$ zhengyang modified for box
+
 //#if defined (CONFIG_SND_SOC_RK1000)
 //	{
 //		.type          = "rk1000_i2c_codec",
@@ -1343,7 +1412,7 @@ static struct i2c_board_info __initdata i2c0_info[] = {
 //		.flags         = 0,
 //	},
 //#endif
-//$_rbox_$_modify_$ zhengyang modified end
+
 #if defined (CONFIG_SND_SOC_RT5631)
         {
                 .type                   = "rt5631",
@@ -1763,7 +1832,7 @@ static struct i2c_board_info __initdata i2c2_info[] = {
 		.platform_data = &cm3217_info,
 	},
 #endif
-//$_rbox_$_modify_$ zhengyang modified for box
+
 #ifdef CONFIG_IT66121
 {
 		.type		= "it66121",
@@ -1782,7 +1851,7 @@ static struct i2c_board_info __initdata i2c2_info[] = {
 //		.platform_data 	= &rk_hdmi_pdata,
 //	},
 //#endif
-//$_rbox_$_modify_$ zhengyang modified end
+
 };
 #endif
 
@@ -1824,7 +1893,7 @@ static struct i2c_board_info __initdata i2c4_info[] = {
 		},
 #endif
 #endif
-//$_rbox_$_modify_$ zhengyang modified for box
+
 #if defined (CONFIG_MFD_RK1000)
 	{
 		.type			= "rk1000_control",
@@ -1845,10 +1914,10 @@ static struct i2c_board_info __initdata i2c4_info[] = {
 		.type           = "rk1000_i2c_codec",
 		.addr           = 0x60,
 		.flags          = 0,
+		.platform_data = &tv_data,
     },
 #endif
 #endif
-//$_rbox_$_modify_$ zhengyang modified end
 };
 #endif
 
@@ -1929,13 +1998,13 @@ static void rk30_pm_power_off(void)
 
 static void __init machine_rk30_board_init(void)
 {
-	//avs_init();
+	avs_init();
 	gpio_request(POWER_ON_PIN, "poweronpin");
 	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
 	
 	pm_power_off = rk30_pm_power_off;
 	
-        gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
+	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
 
 
 	rk30_i2c_register_board_info();
@@ -2027,18 +2096,50 @@ static struct cpufreq_frequency_table dvfs_ddr_table[] = {
 	{.frequency = 400 * 1000 + DDR_FREQ_NORMAL,     .index = 1100 * 1000},
 	{.frequency = CPUFREQ_TABLE_END},
 };
-
+static struct cpufreq_frequency_table dvfs_ddr_table_t[] = {
+	{.frequency = 200 * 1000 + DDR_FREQ_SUSPEND,    .index = 950 * 1000},
+	{.frequency = 460 * 1000 + DDR_FREQ_NORMAL,     .index = 1150 * 1000},
+	{.frequency = CPUFREQ_TABLE_END},
+};
 //#define DVFS_CPU_TABLE_SIZE	(ARRAY_SIZE(dvfs_cpu_logic_table))
 //static struct cpufreq_frequency_table cpu_dvfs_table[DVFS_CPU_TABLE_SIZE];
 //static struct cpufreq_frequency_table dep_cpu2core_table[DVFS_CPU_TABLE_SIZE];
+int get_max_freq(struct cpufreq_frequency_table *table)
+{
+	int i,temp=0;
+	
+	for(i=0;table[i].frequency!= CPUFREQ_TABLE_END;i++)
+	{
+		if(temp<table[i].frequency)
+			temp=table[i].frequency;
+	}	
+	printk("get_max_freq=%d\n",temp);
+	return temp;
+}
 
 void __init board_clock_init(void)
 {
-	rk30_clock_data_init(periph_pll_default, codec_pll_default, RK30_CLOCKS_DEFAULT_FLAGS);
-	//dvfs_set_arm_logic_volt(dvfs_cpu_logic_table, cpu_dvfs_table, dep_cpu2core_table);
+	u32 flags=RK30_CLOCKS_DEFAULT_FLAGS;
+#if !defined(CONFIG_ARCH_RK3188)
+	if(get_max_freq(dvfs_gpu_table)<=(400*1000))
+	{	
+		flags=RK30_CLOCKS_DEFAULT_FLAGS|CLK_GPU_GPLL;
+	}
+	else
+		flags=RK30_CLOCKS_DEFAULT_FLAGS|CLK_GPU_CPLL;
+#endif	
+	rk30_clock_data_init(periph_pll_default, codec_pll_default, flags);
+	//dvfs_set_arm_logic_volt(dvfs_cpu_logic_table, cpu_dvfs_table, dep_cpu2core_table);	
 	dvfs_set_freq_volt_table(clk_get(NULL, "cpu"), dvfs_arm_table);
 	dvfs_set_freq_volt_table(clk_get(NULL, "gpu"), dvfs_gpu_table);
+#if defined(CONFIG_ARCH_RK3188)
+	if (rk_pll_flag() == 0)
+		dvfs_set_freq_volt_table(clk_get(NULL, "ddr"), dvfs_ddr_table);
+	else
+		dvfs_set_freq_volt_table(clk_get(NULL, "ddr"), dvfs_ddr_table_t);
+#else
 	dvfs_set_freq_volt_table(clk_get(NULL, "ddr"), dvfs_ddr_table);
+#endif
 }
 
 MACHINE_START(RK30, "RK30board")
