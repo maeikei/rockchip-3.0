@@ -641,6 +641,8 @@ int i2c_add_rk30_adapter(struct i2c_adapter *adap)
         int ret = 0;
         struct rk30_i2c *i2c = (struct rk30_i2c *)adap->algo_data;
 
+		snprintf(adap->name, sizeof(adap->name), "rk30_i2c.%u", adap->nr);
+
         adap->algo = &rk30_i2c_algorithm;
 
         i2c->i2c_init_hw = &rk30_i2c_init_hw;
