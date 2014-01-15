@@ -32,10 +32,6 @@ config AIDC
 	default n
 	---help---
 
-choice
-	prompt "WiFi device driver support"
-	default WIFI_NONE
-
 	config WIFI_NONE
 	  bool "No WiFi"
 
@@ -112,7 +108,6 @@ source "drivers/net/wireless/rkusbwifi/mt7601/Kconfig"
 source "drivers/net/wireless/ar6003/Kconfig"
 source "drivers/net/wireless/rtl8723as/Kconfig"
 source "drivers/net/wireless/rkwifi/Kconfig"
-endchoice
 
 choice	
 	depends on RKWIFI && WLAN_80211
