@@ -1101,13 +1101,7 @@ CONFIG_APANIC_PLABEL="kpanic"
 #
 # CONFIG_TI_ST is not set
 # CONFIG_SENSORS_LIS3_I2C is not set
-CONFIG_3G_MODULE=y
-# CONFIG_MU509 is not set
-CONFIG_MT6229=y
-# CONFIG_MW100 is not set
-# CONFIG_SEW868 is not set
-# CONFIG_MI700 is not set
-# CONFIG_SC6610 is not set
+# CONFIG_3G_MODULE is not set
 # CONFIG_BP_AUTO is not set
 # CONFIG_RK2928_CALLPAD_MISC is not set
 # CONFIG_AUDIO_SWITCH is not set
