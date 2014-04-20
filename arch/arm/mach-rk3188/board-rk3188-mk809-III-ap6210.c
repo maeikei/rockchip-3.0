@@ -661,7 +661,7 @@ static struct platform_device device_ion = {
  * SDMMC devices,  include the module of SD,MMC,and sdio.noted by xbw at 2012-03-05
 **************************************************************************************************/
 #ifdef CONFIG_SDMMC_RK29
-#include "board-rk3188-mk809iii-sdmmc-config.c"
+#include "board-rk3188-ds1006h-sdmmc-config.c"
 #include "../plat-rk/rk-sdmmc-ops.c"
 #include "../plat-rk/rk-sdmmc-wifi.c"
 #endif //endif ---#ifdef CONFIG_SDMMC_RK29
@@ -819,7 +819,7 @@ struct rk29_sdmmc_platform_data default_sdmmc1_data = {
 	.register_status_notify = rk29sdk_wifi_status_register,
 	.write_prt = INVALID_GPIO,
 	
-        .sdio_INT_gpio = INVALID_GPIO,
+        .sdio_INT_gpio = RK29SDK_WIFI_SDIO_CARD_INT,
 
     .det_pin_info = {    
         .io             = INVALID_GPIO,
@@ -942,20 +942,23 @@ struct platform_device pwm_regulator_device[1] = {
 
 #ifdef CONFIG_RFKILL_RK
 // bluetooth rfkill device, its driver in net/rfkill/rfkill-rk.c
+#pragma message HSTR(RK30_PIN3_PC7)
+
+
 static struct rfkill_rk_platform_data rfkill_rk_platdata = {
     .type               = RFKILL_TYPE_BLUETOOTH,
 
+
     .poweron_gpio       = { // BT_REG_ON
-        .io             = RK30_PIN3_PC7, //RK30_PIN3_PC7,
+        .io             = RK30_PIN3_PD1, //RK30_PIN3_PC7,
         .enable         = GPIO_HIGH,
         .iomux          = {
             .name       = "bt_poweron",
-            .fgpio      = GPIO3_C7,
+            .fgpio      = GPIO3_D1,
         },
     },
-
     .reset_gpio         = { // BT_RST
-        .io             = RK30_PIN3_PD1, // set io to INVALID_GPIO for disable it
+        .io             = INVALID_GPIO, // set io to INVALID_GPIO for disable it
         .enable         = GPIO_LOW,
         .iomux          = {
             .name       = "bt_reset",
@@ -974,7 +977,7 @@ static struct rfkill_rk_platform_data rfkill_rk_platdata = {
 
     .wake_host_irq      = { // BT_HOST_WAKE, for bt wakeup host when it is in deep sleep
         .gpio           = {
-            .io         = RK30_PIN3_PD2, // set io to INVALID_GPIO for disable it
+            .io         = RK30_PIN3_PC7, // set io to INVALID_GPIO for disable it
             .enable     = GPIO_LOW,      // set GPIO_LOW for falling, set 0 for rising
             .iomux      = {
                 .name   = NULL,
@@ -1841,18 +1844,15 @@ static void rk30_pm_power_off(void)
 #if defined(CONFIG_REGULATOR_ACT8846)
        if (pmic_is_act8846()) {
                printk("enter dcdet===========\n");
-               if(gpio_get_value (RK30_PIN0_PB2) == GPIO_LOW)
+/*               if(gpio_get_value (RK30_PIN0_PB2) == GPIO_LOW) 
                {
                        printk("enter restart===========\n");
                        arm_pm_restart(0, NULL);
                }
 		/** code here may cause tablet cannot boot when shutdown without charger pluged in
 		  * and then plug in charger. -- Cody Xie
-               else
-		{
+		  else*/
 			act8846_device_shutdown();
-		}
-		  */
        }
 #endif
 	gpio_direction_output(POWER_ON_PIN, GPIO_LOW);
